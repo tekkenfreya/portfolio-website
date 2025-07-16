@@ -26,9 +26,9 @@ _Note: Architecture details will be documented as the project develops_
 
 ## Development Notes
 
--   This is a portfolio website project in the early planning/setup phase
--   No existing codebase or configuration files are present
--   Future instances should help establish the project structure based on user requirements
+This is a portfolio website project in the early planning/setup phase
+No existing codebase or configuration files are present
+Future instances should help establish the project structure based on user requirements
 
 ## Tasks
 
