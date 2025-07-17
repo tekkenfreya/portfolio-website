@@ -130,6 +130,6 @@ export const portfolioData = {
   social: {
     github: "https://github.com/tekkenfreya",
     linkedin: "https://linkedin.com/in/edson-pangilinan-38714226a",
-    twitter: "https://twitter.com/username",
+    onlinejobs: "https://www.onlinejobs.ph/jobseekers/info/your-profile-id",
   },
 }
