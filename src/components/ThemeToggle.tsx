@@ -12,7 +12,7 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="fixed top-4 right-6 z-50 p-2 rounded-full bg-white/20 dark:bg-black/40 backdrop-blur-md border border-white/30 dark:border-gray-600/50 shadow-xl hover:shadow-2xl transition-all duration-300"
+      className="fixed top-4 right-16 md:right-6 z-50 p-2 rounded-full bg-white/20 dark:bg-black/40 backdrop-blur-md border border-white/30 dark:border-gray-600/50 shadow-xl hover:shadow-2xl transition-all duration-300"
       style={{
         boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1)',
         filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))'
