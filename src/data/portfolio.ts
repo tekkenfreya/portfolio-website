@@ -101,8 +101,8 @@ export const portfolioData = {
       instructor: "Maximilian Schwarzmüller",
       date: "2024",
       skills: ["Next.js", "SSR", "SSG", "API Routes"],
-      credentialUrl: "https://udemy.com/certificate/example2",
-      image: "/images/cert2.jpg",
+      credentialUrl: "https://www.udemy.com/certificate/UC-5fc8115c-2c30-4fd7-ab38-e5af89beb6f1/",
+      image: "/images/nextjs-c.png",
     },
     {
       id: 3,
@@ -129,6 +129,6 @@ export const portfolioData = {
   social: {
     github: "https://github.com/tekkenfreya",
     linkedin: "https://linkedin.com/in/edson-pangilinan-38714226a",
-    onlinejobs: "https://www.onlinejobs.ph/jobseekers/info/your-profile-id",
+    onlinejobs: "https://www.onlinejobs.ph/jobseekers/info/599523",
   },
 }
