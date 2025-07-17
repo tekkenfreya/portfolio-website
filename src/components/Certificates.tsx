@@ -83,14 +83,24 @@ export default function Certificates() {
                   {/* Certificate Header */}
                   <div className="relative overflow-hidden">
                     <motion.div 
-                      className="w-full h-48 bg-gradient-to-br from-gojo-blue via-gojo-purple to-gojo-red flex items-center justify-center relative"
+                      className="w-full h-48 relative"
                       whileHover={{ scale: 1.05 }}
                       transition={{ duration: 0.4 }}
                     >
-                      <div className="text-center">
-                        <div className="text-6xl text-white/90 mb-2">🎓</div>
-                        <div className="text-white/80 font-semibold text-lg">{certificate.provider}</div>
-                      </div>
+                      {certificate.image ? (
+                        <img 
+                          src={certificate.image} 
+                          alt={certificate.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-gojo-blue via-gojo-purple to-gojo-red flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-6xl text-white/90 mb-2">🎓</div>
+                            <div className="text-white/80 font-semibold text-lg">{certificate.provider}</div>
+                          </div>
+                        </div>
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                     </motion.div>
                     
@@ -196,14 +206,14 @@ export default function Certificates() {
                 className="text-center"
                 whileHover={{ scale: 1.05 }}
               >
-                <div className="text-4xl font-bold text-gojo-purple mb-2">100+</div>
+                <div className="text-4xl font-bold text-gojo-purple mb-2">1000+</div>
                 <div className="text-gray-600 dark:text-gray-300">Hours of Learning</div>
               </motion.div>
               <motion.div
                 className="text-center"
                 whileHover={{ scale: 1.05 }}
               >
-                <div className="text-4xl font-bold text-gojo-red mb-2">2024</div>
+                <div className="text-4xl font-bold text-gojo-red mb-2">2021</div>
                 <div className="text-gray-600 dark:text-gray-300">Continuous Learning</div>
               </motion.div>
             </div>
