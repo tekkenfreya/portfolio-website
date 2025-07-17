@@ -80,7 +80,6 @@ export default function About() {
                 {[
                   { label: 'Name', value: portfolioData.personal.name },
                   { label: 'Email', value: portfolioData.personal.email, link: `mailto:${portfolioData.personal.email}` },
-                  { label: 'Phone', value: portfolioData.personal.phone, link: `tel:${portfolioData.personal.phone}` },
                   { label: 'Location', value: portfolioData.personal.location }
                 ].map((item, index) => (
                   <motion.div 

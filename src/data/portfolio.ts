@@ -4,7 +4,6 @@ export const portfolioData = {
     title: "Full Stack Developer",
     tagline: "Building modern web applications with passion and precision",
     email: "tekkenfreya@gmail.com",
-    phone: "+63 917 123 4567",
     location: "Manila, Philippines",
     bio: "Passionate full-stack developer with expertise in modern web technologies. I love creating efficient, scalable, and user-friendly applications that solve real-world problems.",
   },
