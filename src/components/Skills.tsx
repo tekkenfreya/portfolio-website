@@ -270,7 +270,7 @@ export default function Skills() {
                   Always learning and exploring new technologies
                 </p>
                 <p className="text-gray-600 dark:text-gray-300 mt-2">
-                  Let's build something amazing together!
+                  Let&apos;s build something amazing together!
                 </p>
               </div>
             </motion.div>

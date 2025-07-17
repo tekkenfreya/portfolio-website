@@ -102,7 +102,7 @@ ${formData.message}
               transition={{ delay: 0.5, duration: 0.8 }}
             ></motion.div>
             <p className="text-lg text-gray-300 mt-6 max-w-2xl mx-auto">
-              Let's discuss your next project or just say hello!
+              Let&apos;s discuss your next project or just say hello!
             </p>
           </motion.div>
 
