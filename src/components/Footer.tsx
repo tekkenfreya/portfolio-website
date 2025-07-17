@@ -76,7 +76,7 @@ export default function Footer() {
                 { 
                   name: 'OnlineJobs.ph', 
                   url: portfolioData.social.onlinejobs, 
-                  icon: 'M10 2L14 2C15.1 2 16 2.9 16 4V6H20C21.1 6 22 6.9 22 8V19C22 20.1 21.1 21 20 21H4C2.9 21 2 20.1 2 19V8C2 6.9 2.9 6 4 6H8V4C8 2.9 8.9 2 10 2ZM14 6V4H10V6H14ZM4 8V19H20V8H4Z',
+                  icon: 'M4 4a2 2 0 012-2h12a2 2 0 012 2v2h2a2 2 0 012 2v12a2 2 0 01-2 2H2a2 2 0 01-2-2V8a2 2 0 012-2h2V4zm2 2v12h12V6H6zm2-2h8V4H8v2zm-4 4h16v10H4V10z',
                   color: 'from-gojo-purple to-gojo-red'
                 }
               ].map((social, index) => (
