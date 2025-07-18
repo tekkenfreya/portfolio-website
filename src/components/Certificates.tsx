@@ -3,6 +3,7 @@ import { portfolioData } from '@/data/portfolio'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { useScrollAnimation, fadeInUp, staggerContainer } from '@/hooks/useScrollAnimation'
 import { useRef } from 'react'
+import Image from 'next/image'
 
 export default function Certificates() {
   const { ref: titleRef, controls: titleControls } = useScrollAnimation()
@@ -82,16 +83,15 @@ export default function Certificates() {
                 <div className="bg-white/80 dark:bg-black/40 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-white/20 dark:border-gray-700/30">
                   {/* Certificate Header */}
                   <div className="relative overflow-hidden">
-                    <motion.div 
-                      className="w-full h-48 relative"
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.4 }}
-                    >
+                    <div className="w-full h-48 relative overflow-hidden">
                       {certificate.image ? (
-                        <img 
+                        <Image 
                           src={certificate.image} 
                           alt={certificate.title}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          priority={index < 2}
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-gojo-blue via-gojo-purple to-gojo-red flex items-center justify-center">
@@ -102,7 +102,7 @@ export default function Certificates() {
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                    </motion.div>
+                    </div>
                     
                     {/* Verification Badge */}
                     <motion.div 
