@@ -3,7 +3,6 @@ import { portfolioData } from '@/data/portfolio'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { useScrollAnimation, fadeInUp, staggerContainer } from '@/hooks/useScrollAnimation'
 import { useRef } from 'react'
-import Image from 'next/image'
 
 export default function Certificates() {
   const { ref: titleRef, controls: titleControls } = useScrollAnimation()
@@ -85,13 +84,10 @@ export default function Certificates() {
                   <div className="relative overflow-hidden">
                     <div className="w-full h-48 relative overflow-hidden">
                       {certificate.image ? (
-                        <Image 
+                        <img 
                           src={certificate.image} 
                           alt={certificate.title}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          priority={index < 2}
+                          className="w-full h-full object-cover"
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-gojo-blue via-gojo-purple to-gojo-red flex items-center justify-center">
