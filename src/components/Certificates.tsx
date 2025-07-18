@@ -8,6 +8,13 @@ export default function Certificates() {
   const { ref: titleRef, controls: titleControls } = useScrollAnimation()
   const { ref: gridRef, controls: gridControls } = useScrollAnimation()
   
+  // Debug: Log the certificate data
+  console.log('Certificate data:', portfolioData.certificates.map(cert => ({
+    id: cert.id,
+    title: cert.title,
+    image: cert.image
+  })))
+  
   const parallaxRef = useRef(null)
   const { scrollYProgress } = useScroll({
     target: parallaxRef,
