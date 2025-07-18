@@ -82,12 +82,15 @@ export default function Certificates() {
                 <div className="bg-white/80 dark:bg-black/40 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-white/20 dark:border-gray-700/30">
                   {/* Certificate Header */}
                   <div className="relative overflow-hidden">
-                    <div className="w-full h-48 relative overflow-hidden">
+                    <div className="w-full h-48 bg-gray-100 dark:bg-gray-800">
                       {certificate.image ? (
                         <img 
                           src={certificate.image} 
                           alt={certificate.title}
                           className="w-full h-full object-cover"
+                          style={{ display: 'block' }}
+                          onLoad={() => console.log(`Image loaded: ${certificate.title}`)}
+                          onError={() => console.log(`Image failed to load: ${certificate.title} - ${certificate.image}`)}
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-gojo-blue via-gojo-purple to-gojo-red flex items-center justify-center">
@@ -97,7 +100,7 @@ export default function Certificates() {
                           </div>
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                     </div>
                     
                     {/* Verification Badge */}
