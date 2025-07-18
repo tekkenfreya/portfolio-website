@@ -92,7 +92,7 @@ export const portfolioData = {
       date: "2025",
       skills: ["Flask", "Web Scraping", "Data Analysis", "Automation"],
       credentialUrl: "https://www.udemy.com/certificate/UC-65d3e8d1-368c-4f9f-84ba-36af2f5c7a2a/",
-      image: "/images/cert1.jpg",
+      image: "/images/100days-c.png",
     },
     {
       id: 2,
@@ -112,7 +112,7 @@ export const portfolioData = {
       date: "2024",
       skills: ["Java", "Kotlin", "Android Development", "Firebase"],
       credentialUrl: "https://www.udemy.com/certificate/UC-10b27b18-1530-41bd-9f9f-353e97f1ea12/",
-      image: "/images/cert3.jpg",
+      image: "/images/android-c.png",
     },
     {
       id: 4,
@@ -122,7 +122,7 @@ export const portfolioData = {
       date: "2024",
       skills: ["HTML", "CSS", "JavaScript", "React", "Node.js", "Express", "PostgreSQL"],
       credentialUrl: "https://www.udemy.com/certificate/UC-358a179d-eb08-4614-b068-7ed48b695f75/",
-      image: "/images/cert4.jpg",
+      image: "/images/webdev-c.png",
     },
   ],
   
