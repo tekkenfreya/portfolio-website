@@ -282,7 +282,7 @@ export default function WorkExperience() {
                 className="text-center"
                 whileHover={{ scale: 1.05 }}
               >
-                <div className="text-4xl font-bold text-gojo-blue mb-2">4+</div>
+                <div className="text-4xl font-bold text-gojo-blue mb-2">9+</div>
                 <div className="text-gray-600 dark:text-gray-300">Years Experience</div>
               </motion.div>
               <motion.div
