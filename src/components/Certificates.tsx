@@ -8,12 +8,6 @@ export default function Certificates() {
   const { ref: titleRef, controls: titleControls } = useScrollAnimation()
   const { ref: gridRef, controls: gridControls } = useScrollAnimation()
   
-  // Debug: Log the certificate data
-  console.log('Certificate data:', portfolioData.certificates.map(cert => ({
-    id: cert.id,
-    title: cert.title,
-    image: cert.image
-  })))
   
   const parallaxRef = useRef(null)
   const { scrollYProgress } = useScroll({
@@ -82,11 +76,11 @@ export default function Certificates() {
               <motion.div
                 key={certificate.id}
                 variants={cardVariants}
-                className="group"
+                className="group h-full"
                 whileHover={{ y: -8, scale: 1.02 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="bg-white/80 dark:bg-black/40 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-white/20 dark:border-gray-700/30">
+                <div className="bg-white/80 dark:bg-black/40 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-white/20 dark:border-gray-700/30 h-full flex flex-col">
                   {/* Certificate Header */}
                   <div className="relative overflow-hidden">
                     <div className="w-full h-48 bg-gray-100 dark:bg-gray-800">
@@ -122,7 +116,7 @@ export default function Certificates() {
                   </div>
 
                   {/* Certificate Content */}
-                  <div className="p-6">
+                  <div className="p-6 flex-grow flex flex-col">
                     <motion.h3 
                       className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-gojo-blue transition-colors"
                       initial={{ opacity: 0 }}
@@ -152,7 +146,7 @@ export default function Certificates() {
                     
                     {/* Skills Tags */}
                     <motion.div 
-                      className="mb-4"
+                      className="mb-4 flex-grow"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.5 }}

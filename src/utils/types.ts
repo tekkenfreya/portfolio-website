@@ -1,3 +1,11 @@
+export interface Company {
+  id: number
+  name: string
+  type: string
+  period: string
+  description?: string
+}
+
 export interface Project {
   id: number
   title: string
@@ -6,6 +14,7 @@ export interface Project {
   liveUrl: string
   githubUrl: string
   image: string
+  companyId: number
 }
 
 export interface PersonalInfo {

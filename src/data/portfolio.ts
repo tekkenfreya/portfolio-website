@@ -62,25 +62,54 @@ export const portfolioData = {
    
   ],
 
-  projects: [
+  companies: [
     {
       id: 1,
-      title: "E-Commerce Platform",
-      description: "Full-stack e-commerce solution with payment integration",
-      technologies: ["Next.js", "TypeScript", "Stripe", "PostgreSQL"],
-      liveUrl: "https://example.com",
-      githubUrl: "https://github.com/username/project",
-      image: "/images/project1.jpg",
+      name: "NXTLVL Water Technology Inc.",
+      type: "Freelance Contract",
+      period: "2025 - Present",
+      description: "Leading water technology company focused on innovative solutions"
     },
     {
       id: 2,
+      name: "Personal Projects",
+      type: "Independent Work",
+      period: "Ongoing",
+      description: "Personal learning and development projects"
+    }
+  ],
+
+  projects: [
+    {
+      id: 1,
+      title: "GoWater Mobile App",
+      description: "Mobile application for water delivery service with real-time tracking and payment integration",
+      technologies: ["React Native", "Firebase", "Node.js", "TypeScript"],
+      liveUrl: "#",
+      githubUrl: "https://github.com/tekkenfreya/gowater-mobile-app",
+      image: "/images/project1.jpg",
+      companyId: 1
+    },
+    {
+      id: 2,
+      title: "Water Management Dashboard",
+      description: "Web dashboard for managing water delivery operations and analytics",
+      technologies: ["Next.js", "TypeScript", "Supabase", "Tailwind CSS"],
+      liveUrl: "#",
+      githubUrl: "https://github.com/username/water-dashboard",
+      image: "/images/project2.jpg",
+      companyId: 1
+    },
+    {
+      id: 3,
       title: "Task Management App",
       description: "Collaborative task management with real-time updates",
       technologies: ["React", "Node.js", "Socket.io", "MongoDB"],
       liveUrl: "https://example.com",
       githubUrl: "https://github.com/username/project",
-      image: "/images/project2.jpg",
-    },
+      image: "/images/project3.jpg",
+      companyId: 2
+    }
   ],
   
   certificates: [
