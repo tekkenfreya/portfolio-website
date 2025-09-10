@@ -32,7 +32,7 @@ export const portfolioData = {
     },
     {
       id: 2,
-      company: "Marvvy",
+      company: "Mavel Production",
       position: "Video Editor / Motion Graphics Designer",
       duration: "2017 - 2025",
       location: "Remote",
