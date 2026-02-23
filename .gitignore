@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+build/
+
+# Environment variables — never commit
+.env
+.env.local
+.env.*.local
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.code-workspace
+
+# Claude Code session files
+.claude/
+
+# Root-level public (working copies only — served from apps/web/public)
+public/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

@@ -1,0 +1,321 @@
+{
+  "name": "Lead Capture → CRM → Follow-up",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-capture",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "1a2b3c4d-0001-0001-0001-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "1a2b3c4d-0001-0001-0001-000000000099"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {}
+      },
+      "id": "1a2b3c4d-0001-0001-0001-000000000002",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [480, 160]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body ?? $input.first().json;\nreturn [{\n  json: {\n    name:      body.name      ?? '',\n    email:     body.email     ?? '',\n    company:   body.company   ?? '',\n    message:   body.message   ?? '',\n    contactId: body.contactId ?? ''\n  }\n}];"
+      },
+      "id": "1a2b3c4d-0001-0001-0001-000000000003",
+      "name": "Parse Lead Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key",          "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version",   "value": "2023-06-01" },
+            { "name": "content-type",        "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-haiku-4-5-20251001\",\n  \"max_tokens\": 256,\n  \"temperature\": 0,\n  \"system\": \"You are a lead scoring assistant. Score the lead as hot, warm, or cold based on name, company, and message.\\n\\nHot = clear buying intent or urgent need.\\nWarm = genuine interest but no urgency.\\nCold = vague, irrelevant, or low-quality.\\n\\nReturn ONLY valid JSON — no prose, no markdown:\\n{ \\\"score\\\": \\\"hot\\\" | \\\"warm\\\" | \\\"cold\\\", \\\"reason\\\": \\\"one short sentence\\\" }\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Name: {{ $json.name }}\\nCompany: {{ $json.company }}\\nMessage: {{ $json.message }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "1a2b3c4d-0001-0001-0001-000000000004",
+      "name": "Claude: Score Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw  = $input.first().json.content[0].text;\nconst data = JSON.parse(raw);\nreturn [{\n  json: {\n    score:     data.score,\n    reason:    data.reason,\n    contactId: $('Parse Lead Data').first().json.contactId\n  }\n}];"
+      },
+      "id": "1a2b3c4d-0001-0001-0001-000000000005",
+      "name": "Parse Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 320]
+    },
+    {
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue":  "={{ $json.score }}",
+                    "rightValue": "hot",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Hot Lead"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue":  "={{ $json.score }}",
+                    "rightValue": "warm",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Warm Lead"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue":  "={{ $json.score }}",
+                    "rightValue": "cold",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Cold Lead"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "1a2b3c4d-0001-0001-0001-000000000006",
+      "name": "Route by Score",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1200, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://rest.gohighlevel.com/v1/contacts/{{ $json.contactId }}/tags/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.GHL_API_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"tags\": [\"hot-lead\"] }",
+        "options": {}
+      },
+      "id": "1a2b3c4d-0001-0001-0001-000000000007",
+      "name": "Tag: Hot Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 120]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://rest.gohighlevel.com/v1/contacts/{{ $json.contactId }}/tags/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.GHL_API_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"tags\": [\"warm-lead\"] }",
+        "options": {}
+      },
+      "id": "1a2b3c4d-0001-0001-0001-000000000008",
+      "name": "Tag: Warm Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://rest.gohighlevel.com/v1/contacts/{{ $json.contactId }}/tags/",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.GHL_API_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={ \"tags\": [\"cold-lead\"] }",
+        "options": {}
+      },
+      "id": "1a2b3c4d-0001-0001-0001-000000000009",
+      "name": "Tag: Cold Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 520]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://rest.gohighlevel.com/v1/campaigns/enroll",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.GHL_API_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contactId\": \"{{ $('Route by Score').first().json.contactId }}\",\n  \"campaignId\": \"{{ $env.GHL_HOT_SEQUENCE_ID }}\"\n}",
+        "options": {}
+      },
+      "id": "1a2b3c4d-0001-0001-0001-000000000010",
+      "name": "Enroll: Hot Sequence",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1680, 120]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://rest.gohighlevel.com/v1/campaigns/enroll",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.GHL_API_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contactId\": \"{{ $('Route by Score').first().json.contactId }}\",\n  \"campaignId\": \"{{ $env.GHL_WARM_SEQUENCE_ID }}\"\n}",
+        "options": {}
+      },
+      "id": "1a2b3c4d-0001-0001-0001-000000000011",
+      "name": "Enroll: Warm Sequence",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1680, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://rest.gohighlevel.com/v1/campaigns/enroll",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer {{ $env.GHL_API_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contactId\": \"{{ $('Route by Score').first().json.contactId }}\",\n  \"campaignId\": \"{{ $env.GHL_COLD_SEQUENCE_ID }}\"\n}",
+        "options": {}
+      },
+      "id": "1a2b3c4d-0001-0001-0001-000000000012",
+      "name": "Enroll: Cold Sequence",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1680, 520]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          { "node": "Respond OK",       "type": "main", "index": 0 },
+          { "node": "Parse Lead Data",  "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Parse Lead Data": {
+      "main": [
+        [ { "node": "Claude: Score Lead", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Claude: Score Lead": {
+      "main": [
+        [ { "node": "Parse Score", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Parse Score": {
+      "main": [
+        [ { "node": "Route by Score", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Route by Score": {
+      "main": [
+        [ { "node": "Tag: Hot Lead",  "type": "main", "index": 0 } ],
+        [ { "node": "Tag: Warm Lead", "type": "main", "index": 0 } ],
+        [ { "node": "Tag: Cold Lead", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Tag: Hot Lead": {
+      "main": [
+        [ { "node": "Enroll: Hot Sequence", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Tag: Warm Lead": {
+      "main": [
+        [ { "node": "Enroll: Warm Sequence", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Tag: Cold Lead": {
+      "main": [
+        [ { "node": "Enroll: Cold Sequence", "type": "main", "index": 0 } ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1a2b3c4d-0001-0001-0001-000000000000",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "portfolio-demo"
+  },
+  "id": "lead-capture-workflow-001",
+  "tags": []
+}

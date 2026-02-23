@@ -1,0 +1,261 @@
+{
+  "name": "03 — Invoice Overdue Follow-up (n8n)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "invoice-overdue",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4001-8001-300000000001",
+      "name": "Overdue Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "invoice-overdue-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json.body;\nconst dueDate = new Date(data.dueDate * 1000);\nconst today = new Date();\nconst daysOverdue = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));\n\nlet reminderDay;\nif (daysOverdue <= 3) {\n  reminderDay = 3;\n} else if (daysOverdue <= 7) {\n  reminderDay = 7;\n} else {\n  reminderDay = 14;\n}\n\nreturn [{\n  json: {\n    invoiceId: data.invoiceId,\n    customerEmail: data.customerEmail,\n    customerName: data.customerName,\n    amount: (data.amount / 100).toFixed(2),\n    currency: (data.currency || 'usd').toUpperCase(),\n    daysOverdue,\n    reminderDay,\n    invoiceUrl: data.invoiceUrl\n  }\n}];"
+      },
+      "id": "b2c3d4e5-0002-4002-8002-300000000002",
+      "name": "Calculate Days Overdue",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "condition-day3",
+                    "leftValue": "={{ $json.reminderDay }}",
+                    "rightValue": 3,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Day 3"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "condition-day7",
+                    "leftValue": "={{ $json.reminderDay }}",
+                    "rightValue": 7,
+                    "operator": {
+                      "type": "number",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Day 7"
+            }
+          ]
+        },
+        "fallbackOutput": "extra",
+        "options": {}
+      },
+      "id": "c3d4e5f6-0003-4003-8003-300000000003",
+      "name": "Route by Overdue Days",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZAPIER_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({\n  reminderType: 'day_3',\n  subject: 'Payment Reminder — Invoice Overdue (3 Days)',\n  customerEmail: $json.customerEmail,\n  customerName: $json.customerName,\n  invoiceId: $json.invoiceId,\n  amount: $json.amount,\n  currency: $json.currency,\n  daysOverdue: $json.daysOverdue,\n  invoiceUrl: $json.invoiceUrl\n}) }}",
+        "options": {}
+      },
+      "id": "d4e5f6a7-0004-4004-8004-300000000004",
+      "name": "Zapier — Day 3 Reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 80]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZAPIER_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({\n  reminderType: 'day_7',\n  subject: 'Second Notice — Invoice Now 7 Days Overdue',\n  customerEmail: $json.customerEmail,\n  customerName: $json.customerName,\n  invoiceId: $json.invoiceId,\n  amount: $json.amount,\n  currency: $json.currency,\n  daysOverdue: $json.daysOverdue,\n  invoiceUrl: $json.invoiceUrl\n}) }}",
+        "options": {}
+      },
+      "id": "e5f6a7b8-0005-4005-8005-300000000005",
+      "name": "Zapier — Day 7 Reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZAPIER_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({\n  reminderType: 'day_14',\n  subject: 'Final Notice — Invoice 14 Days Overdue',\n  customerEmail: $json.customerEmail,\n  customerName: $json.customerName,\n  invoiceId: $json.invoiceId,\n  amount: $json.amount,\n  currency: $json.currency,\n  daysOverdue: $json.daysOverdue,\n  invoiceUrl: $json.invoiceUrl\n}) }}",
+        "options": {}
+      },
+      "id": "f6a7b8c9-0006-4006-8006-300000000006",
+      "name": "Zapier — Day 14 Final Notice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 520]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ ({\n  success: true,\n  reminderDay: $('Calculate Days Overdue').first().json.reminderDay,\n  message: 'Overdue reminder triggered for day ' + $('Calculate Days Overdue').first().json.reminderDay\n}) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "a7b8c9d0-0007-4007-8007-300000000007",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1200, 300]
+    }
+  ],
+  "connections": {
+    "Overdue Webhook": {
+      "main": [
+        [
+          {
+            "node": "Calculate Days Overdue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Days Overdue": {
+      "main": [
+        [
+          {
+            "node": "Route by Overdue Days",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Overdue Days": {
+      "main": [
+        [
+          {
+            "node": "Zapier — Day 3 Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Zapier — Day 7 Reminder",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Zapier — Day 14 Final Notice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zapier — Day 3 Reminder": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zapier — Day 7 Reminder": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zapier — Day 14 Final Notice": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0.0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  },
+  "id": "invoice-followup-n8n-03",
+  "pinData": {},
+  "staticData": null,
+  "tags": []
+}
