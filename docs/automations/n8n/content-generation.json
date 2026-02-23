@@ -1,0 +1,131 @@
+{
+  "name": "Content Generation → Approval → Auto-Publish",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "content-generate",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "2a2b3c4d-0002-0002-0002-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "2a2b3c4d-0002-0002-0002-000000000099"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {}
+      },
+      "id": "2a2b3c4d-0002-0002-0002-000000000002",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [480, 160]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body ?? $input.first().json;\nreturn [{\n  json: {\n    topic:    body.topic    ?? '',\n    tone:     body.tone     ?? 'professional',\n    type:     body.type     ?? 'blog-post',\n    platform: body.platform ?? 'wordpress'\n  }\n}];"
+      },
+      "id": "2a2b3c4d-0002-0002-0002-000000000003",
+      "name": "Parse Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key",        "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type",      "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-haiku-4-5-20251001\",\n  \"max_tokens\": 1024,\n  \"temperature\": 0.7,\n  \"system\": \"You are a professional content writer. Write {{ $json.type }} content that is {{ $json.tone }} in tone. Return ONLY valid JSON — no prose outside it:\\n{ \\\"title\\\": \\\"string\\\", \\\"body\\\": \\\"string\\\", \\\"hashtags\\\": [\\\"string\\\"] }\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Write a {{ $json.type }} about: {{ $json.topic }}. Tone: {{ $json.tone }}.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "2a2b3c4d-0002-0002-0002-000000000004",
+      "name": "Claude: Generate Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw  = $input.first().json.content[0].text;\nconst data = JSON.parse(raw);\nreturn [{\n  json: {\n    title:     data.title,\n    body:      data.body,\n    hashtags:  data.hashtags,\n    topic:     $('Parse Request').first().json.topic,\n    platform:  $('Parse Request').first().json.platform\n  }\n}];"
+      },
+      "id": "2a2b3c4d-0002-0002-0002-000000000005",
+      "name": "Parse Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MAKE_APPROVAL_WEBHOOK_URL }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"title\":    \"{{ $json.title }}\",\n  \"body\":     \"{{ $json.body }}\",\n  \"hashtags\": {{ JSON.stringify($json.hashtags) }},\n  \"platform\": \"{{ $json.platform }}\"\n}",
+        "options": {}
+      },
+      "id": "2a2b3c4d-0002-0002-0002-000000000006",
+      "name": "Send to Make: Approval Gate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1200, 320]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          { "node": "Respond OK",     "type": "main", "index": 0 },
+          { "node": "Parse Request",  "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Parse Request": {
+      "main": [
+        [ { "node": "Claude: Generate Content", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Claude: Generate Content": {
+      "main": [
+        [ { "node": "Parse Content", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Parse Content": {
+      "main": [
+        [ { "node": "Send to Make: Approval Gate", "type": "main", "index": 0 } ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2a2b3c4d-0002-0002-0002-000000000000",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "portfolio-demo"
+  },
+  "id": "content-generation-workflow-002",
+  "tags": []
+}

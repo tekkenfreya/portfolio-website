@@ -1,0 +1,214 @@
+{
+  "name": "02 — Content Approval Gate (Make)",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": 1,
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        },
+        "restore": {
+          "parameters": {
+            "hook": {
+              "label": "n8n Content Webhook"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": {
+        "handleErrors": false,
+        "useNewZLibDecompression": true
+      },
+      "mapper": {
+        "url": "{{$env.APPROVAL_EMAIL_WEBHOOK_URL}}",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "contentType": "application/json",
+        "body": "{\"to\": \"{{1.editorEmail}}\", \"subject\": \"Content Ready for Approval: {{1.title}}\", \"blogPost\": \"{{1.blogPost}}\", \"socialCaption\": \"{{1.socialCaption}}\", \"approveUrl\": \"{{$env.MAKE_APPROVE_WEBHOOK_URL}}?action=approve\", \"rejectUrl\": \"{{$env.MAKE_APPROVE_WEBHOOK_URL}}?action=reject\"}"
+      },
+      "metadata": {
+        "designer": {
+          "x": 300,
+          "y": 0
+        },
+        "restore": {
+          "parameters": {
+            "label": "Send Approval Email"
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": 2,
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 600,
+          "y": 0
+        },
+        "restore": {
+          "parameters": {
+            "hook": {
+              "label": "Editor Approval Response"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "module": "builtin:BasicRouter",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 900,
+          "y": 0
+        }
+      },
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 5,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": {
+                "handleErrors": false,
+                "useNewZLibDecompression": true
+              },
+              "mapper": {
+                "url": "{{$env.ZAPIER_WEBHOOK_URL}}",
+                "method": "POST",
+                "headers": [
+                  {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "body": "{\"title\": \"{{1.title}}\", \"blogPost\": \"{{1.blogPost}}\", \"socialCaption\": \"{{1.socialCaption}}\", \"hashtags\": \"{{1.hashtags}}\"}"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 1200,
+                  "y": -150
+                }
+              },
+              "filter": {
+                "name": "Approved",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{3.action}}",
+                      "b": "approve",
+                      "o": "text:equal"
+                    }
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 6,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": {
+                "handleErrors": false,
+                "useNewZLibDecompression": true
+              },
+              "mapper": {
+                "url": "{{$env.APPROVAL_EMAIL_WEBHOOK_URL}}",
+                "method": "POST",
+                "headers": [
+                  {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "body": "{\"to\": \"{{1.editorEmail}}\", \"subject\": \"Content Rejected: {{1.title}}\", \"message\": \"The draft was rejected. No content was published.\"}"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 1200,
+                  "y": 150
+                },
+                "restore": {
+                  "parameters": {
+                    "label": "Send Rejection Email"
+                  }
+                }
+              },
+              "filter": {
+                "name": "Rejected",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{3.action}}",
+                      "b": "reject",
+                      "o": "text:equal"
+                    }
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    },
+    "zone": "eu1.make.com"
+  }
+}

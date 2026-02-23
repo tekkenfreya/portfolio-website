@@ -1,0 +1,182 @@
+{
+  "name": "Content Approval Gate",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": 0,
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": -170, "y": 0 },
+        "restore": {
+          "parameters": {
+            "hook": { "label": "Receive from n8n" }
+          }
+        },
+        "parameters": [
+          {
+            "name": "hook",
+            "type": "hook:gateway-webhook",
+            "label": "Webhook",
+            "required": true
+          },
+          {
+            "name": "maxResults",
+            "type": "number",
+            "label": "Maximum number of results"
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "module": "email:ActionSendEmail",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "to":      "editor@yourdomain.com",
+        "subject": "✍️ New Content Draft Ready for Approval",
+        "html":    true,
+        "content": "<h2>New draft ready for review</h2><p><strong>Title:</strong> {{1.title}}</p><hr/><div>{{1.body}}</div><hr/><p><strong>Hashtags:</strong> {{1.hashtags}}</p><p><strong>Platform:</strong> {{1.platform}}</p><br/><p><a href=\"{{ $env.MAKE_APPROVE_WEBHOOK_URL }}?approved=true&platform={{1.platform}}&title={{1.title}}\" style=\"background:#6366f1;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;\">✅ Approve &amp; Publish</a></p><p><a href=\"{{ $env.MAKE_APPROVE_WEBHOOK_URL }}?approved=false\">❌ Reject</a></p>"
+      },
+      "metadata": {
+        "designer": { "x": 130, "y": 0 },
+        "restore": {},
+        "parameters": [
+          { "name": "to",      "type": "email",   "label": "To",      "required": true },
+          { "name": "subject", "type": "text",    "label": "Subject", "required": true },
+          { "name": "content", "type": "text",    "label": "Content", "required": true },
+          { "name": "html",    "type": "boolean", "label": "HTML" }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": 0,
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 430, "y": 0 },
+        "restore": {
+          "parameters": {
+            "hook": { "label": "Wait for Editor Approval" }
+          }
+        },
+        "parameters": [
+          {
+            "name": "hook",
+            "type": "hook:gateway-webhook",
+            "label": "Webhook",
+            "required": true
+          },
+          {
+            "name": "maxResults",
+            "type": "number",
+            "label": "Maximum number of results"
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "module": "builtin:BasicRouter",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 730, "y": 0 }
+      },
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 5,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": false, "useNewZLibDecompression": true },
+              "mapper": {
+                "url":         "{{ $env.ZAPIER_PUBLISH_WEBHOOK }}",
+                "method":      "POST",
+                "headers":     [],
+                "qs":          [],
+                "bodyType":    "raw",
+                "parseResponse": true,
+                "contentType": "application/json",
+                "data":        "{\"approved\":true,\"platform\":\"{{3.platform}}\",\"title\":\"{{3.title}}\",\"body\":\"{{1.body}}\",\"hashtags\":{{1.hashtags}}}"
+              },
+              "metadata": {
+                "designer": { "x": 1030, "y": -100 },
+                "restore": {
+                  "expect": {
+                    "method":      { "label": "POST" },
+                    "bodyType":    { "label": "Raw" },
+                    "contentType": { "label": "JSON (application/json)" }
+                  }
+                },
+                "parameters": [
+                  { "name": "url",         "type": "url",     "label": "URL",    "required": true },
+                  { "name": "method",      "type": "select",  "label": "Method" },
+                  { "name": "bodyType",    "type": "select",  "label": "Body Type" },
+                  { "name": "contentType", "type": "select",  "label": "Content Type" },
+                  { "name": "data",        "type": "text",    "label": "Request Content" }
+                ]
+              }
+            }
+          ],
+          "label": "Approved",
+          "filter": {
+            "name":        "Is Approved",
+            "conditions": [ { "a": "{{3.approved}}", "b": "true", "o": "text:equal" } ]
+          }
+        },
+        {
+          "flow": [
+            {
+              "id": 6,
+              "module": "gateway:WebhookRespond",
+              "version": 1,
+              "parameters": {},
+              "mapper": {
+                "status":  "200",
+                "body":    "Content rejected — no action taken.",
+                "headers": []
+              },
+              "metadata": {
+                "designer": { "x": 1030, "y": 100 }
+              }
+            }
+          ],
+          "label": "Rejected"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips":             1,
+      "maxErrors":              3,
+      "autoCommit":             true,
+      "autoCommitTriggerLast":  true,
+      "sequential":             false,
+      "slots":                  null,
+      "confidential":           false,
+      "dataloss":               false,
+      "dlq":                    false,
+      "freshVariables":         false
+    },
+    "designer": {
+      "orphans": []
+    },
+    "zone": "eu1.make.com"
+  }
+}

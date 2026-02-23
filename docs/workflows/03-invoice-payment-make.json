@@ -1,0 +1,152 @@
+{
+  "name": "03 — Invoice & Stripe Payment Tracking (Make)",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": 1,
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 0,
+          "y": 0
+        },
+        "restore": {
+          "parameters": {
+            "hook": {
+              "label": "Stripe Events Webhook"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "module": "builtin:BasicRouter",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "metadata": {
+        "designer": {
+          "x": 600,
+          "y": 0
+        }
+      },
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 4,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": {
+                "handleErrors": false,
+                "useNewZLibDecompression": true
+              },
+              "mapper": {
+                "url": "{{$env.ZAPIER_WEBHOOK_URL}}",
+                "method": "POST",
+                "headers": [
+                  {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "body": "{\"event\": \"payment_confirmed\", \"invoiceId\": \"{{1.data.object.id}}\", \"customerEmail\": \"{{1.data.object.customer_email}}\", \"customerName\": \"{{1.data.object.customer_name}}\", \"amount\": \"{{1.data.object.amount_paid}}\", \"currency\": \"{{1.data.object.currency}}\", \"invoiceUrl\": \"{{1.data.object.hosted_invoice_url}}\"}"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 900,
+                  "y": -200
+                }
+              },
+              "filter": {
+                "name": "Payment Confirmed",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{1.type}}",
+                      "b": "payment_intent.succeeded",
+                      "o": "text:equal"
+                    }
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 5,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": {
+                "handleErrors": false,
+                "useNewZLibDecompression": true
+              },
+              "mapper": {
+                "url": "{{$env.N8N_OVERDUE_WEBHOOK_URL}}",
+                "method": "POST",
+                "headers": [
+                  {
+                    "name": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "contentType": "application/json",
+                "body": "{\"event\": \"payment_failed\", \"invoiceId\": \"{{1.data.object.id}}\", \"customerEmail\": \"{{1.data.object.customer_email}}\", \"customerName\": \"{{1.data.object.customer_name}}\", \"amount\": \"{{1.data.object.amount_due}}\", \"currency\": \"{{1.data.object.currency}}\", \"dueDate\": \"{{1.data.object.due_date}}\", \"invoiceUrl\": \"{{1.data.object.hosted_invoice_url}}\"}"
+              },
+              "metadata": {
+                "designer": {
+                  "x": 900,
+                  "y": 200
+                }
+              },
+              "filter": {
+                "name": "Payment Failed / Overdue",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{1.type}}",
+                      "b": "invoice.payment_failed",
+                      "o": "text:equal"
+                    }
+                  ]
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": {
+      "orphans": []
+    },
+    "zone": "eu1.make.com"
+  }
+}

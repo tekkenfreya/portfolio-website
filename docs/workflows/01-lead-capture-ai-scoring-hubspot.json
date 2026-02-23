@@ -1,0 +1,321 @@
+{
+  "name": "01 — Lead Capture → AI Scoring → HubSpot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-capture",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4001-8001-000000000001",
+      "name": "Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "lead-capture-001"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lead = $input.first().json.body;\n\nreturn [{\n  json: {\n    anthropicBody: {\n      model: 'claude-haiku-4-5-20251001',\n      max_tokens: 256,\n      system: 'You are a lead qualification assistant. Classify leads as hot (high intent, clear budget, decision maker), warm (interested but unclear budget or timeline), or cold (low intent, vague, or not a good fit). Respond ONLY with valid JSON — no explanation, no markdown.',\n      messages: [{\n        role: 'user',\n        content: `Score this lead. Return only valid JSON: {\"score\": \"hot|warm|cold\", \"reason\": \"one sentence\"}\\n\\nName: ${lead.name || 'N/A'}\\nEmail: ${lead.email || 'N/A'}\\nCompany: ${lead.company || 'N/A'}\\nMessage: ${lead.message || 'N/A'}\\nBudget: ${lead.budget || 'N/A'}`\n      }]\n    },\n    lead: {\n      name: lead.name || '',\n      email: lead.email || '',\n      company: lead.company || '',\n      phone: lead.phone || '',\n      message: lead.message || '',\n      budget: lead.budget || '',\n      source: lead.source || 'Website Form'\n    }\n  }\n}];"
+      },
+      "id": "b2c3d4e5-0002-4002-8002-000000000002",
+      "name": "Build Claude Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.ANTHROPIC_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.anthropicBody }}",
+        "options": {}
+      },
+      "id": "c3d4e5f6-0003-4003-8003-000000000003",
+      "name": "Call Claude API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst rawText = response.content[0].text.trim();\n\nlet scoring;\ntry {\n  scoring = JSON.parse(rawText);\n} catch (e) {\n  scoring = { score: 'cold', reason: 'AI response could not be parsed — defaulted to cold' };\n}\n\nconst lead = $('Build Claude Prompt').first().json.lead;\nconst nameParts = lead.name.trim().split(' ');\n\n// Map AI score to HubSpot lead status\nconst statusMap = {\n  hot: 'IN_PROGRESS',\n  warm: 'OPEN',\n  cold: 'UNQUALIFIED'\n};\n\nreturn [{\n  json: {\n    score: scoring.score,\n    reason: scoring.reason,\n    hubspotStatus: statusMap[scoring.score] || 'UNQUALIFIED',\n    firstName: nameParts[0] || '',\n    lastName: nameParts.slice(1).join(' ') || '',\n    email: lead.email,\n    phone: lead.phone,\n    company: lead.company,\n    source: lead.source,\n    message: lead.message\n  }\n}];"
+      },
+      "id": "d4e5f6a7-0004-4004-8004-000000000004",
+      "name": "Parse Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "condition-hot",
+                    "leftValue": "={{ $json.score }}",
+                    "rightValue": "hot",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Hot"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "condition-warm",
+                    "leftValue": "={{ $json.score }}",
+                    "rightValue": "warm",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Warm"
+            }
+          ]
+        },
+        "fallbackOutput": "extra",
+        "options": {}
+      },
+      "id": "e5f6a7b8-0005-4005-8005-000000000005",
+      "name": "Route by Score",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.HUBSPOT_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({\n  properties: {\n    firstname: $json.firstName,\n    lastname: $json.lastName,\n    email: $json.email,\n    phone: $json.phone,\n    company: $json.company,\n    hs_lead_status: 'IN_PROGRESS',\n    description: 'AI Score: hot — ' + $json.reason,\n    message: $json.message\n  }\n}) }}",
+        "options": {}
+      },
+      "id": "f6a7b8c9-0006-4006-8006-000000000006",
+      "name": "HubSpot — Hot Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 80]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.HUBSPOT_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({\n  properties: {\n    firstname: $json.firstName,\n    lastname: $json.lastName,\n    email: $json.email,\n    phone: $json.phone,\n    company: $json.company,\n    hs_lead_status: 'OPEN',\n    description: 'AI Score: warm — ' + $json.reason,\n    message: $json.message\n  }\n}) }}",
+        "options": {}
+      },
+      "id": "a7b8c9d0-0007-4007-8007-000000000007",
+      "name": "HubSpot — Warm Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.HUBSPOT_TOKEN }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ ({\n  properties: {\n    firstname: $json.firstName,\n    lastname: $json.lastName,\n    email: $json.email,\n    phone: $json.phone,\n    company: $json.company,\n    hs_lead_status: 'UNQUALIFIED',\n    description: 'AI Score: cold — ' + $json.reason,\n    message: $json.message\n  }\n}) }}",
+        "options": {}
+      },
+      "id": "b8c9d0e1-0008-4008-8008-000000000008",
+      "name": "HubSpot — Cold Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 520]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ ({\n  success: true,\n  score: $('Parse Score').first().json.score,\n  message: 'Lead classified as ' + $('Parse Score').first().json.score\n}) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "c9d0e1f2-0009-4009-8009-000000000009",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1680, 300]
+    }
+  ],
+  "connections": {
+    "Lead Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Claude Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Claude Prompt": {
+      "main": [
+        [
+          {
+            "node": "Call Claude API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Claude API": {
+      "main": [
+        [
+          {
+            "node": "Parse Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Score": {
+      "main": [
+        [
+          {
+            "node": "Route by Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Score": {
+      "main": [
+        [
+          {
+            "node": "HubSpot — Hot Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HubSpot — Warm Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HubSpot — Cold Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot — Hot Lead": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot — Warm Lead": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot — Cold Lead": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0.0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": ""
+  },
+  "id": "lead-capture-ai-scoring-hubspot-01",
+  "pinData": {},
+  "staticData": null,
+  "tags": []
+}

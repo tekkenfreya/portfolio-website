@@ -1,0 +1,152 @@
+{
+  "name": "Invoice → Stripe Webhook → n8n",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": 0,
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": -170, "y": 0 },
+        "restore": {
+          "parameters": {
+            "hook": { "label": "Stripe Webhook Events" }
+          }
+        },
+        "parameters": [
+          {
+            "name": "hook",
+            "type": "hook:gateway-webhook",
+            "label": "Webhook",
+            "required": true
+          },
+          {
+            "name": "maxResults",
+            "type": "number",
+            "label": "Maximum number of results"
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "module": "builtin:BasicRouter",
+      "version": 1,
+      "parameters": {},
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 130, "y": 0 }
+      },
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 3,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": false, "useNewZLibDecompression": true },
+              "mapper": {
+                "url":         "{{ $env.N8N_STRIPE_WEBHOOK_URL }}",
+                "method":      "POST",
+                "headers":     [],
+                "qs":          [],
+                "bodyType":    "raw",
+                "parseResponse": true,
+                "contentType": "application/json",
+                "data":        "{\"eventType\":\"payment_intent.succeeded\",\"invoiceId\":\"{{1.data.object.id}}\",\"customerEmail\":\"{{1.data.object.receipt_email}}\",\"customerName\":\"{{1.data.object.metadata.customerName}}\",\"amountPaid\":\"{{1.data.object.amount_received}}\",\"amountDue\":\"{{1.data.object.amount}}\",\"invoiceUrl\":\"{{1.data.object.receipt_url}}\",\"daysOverdue\":0}"
+              },
+              "metadata": {
+                "designer": { "x": 430, "y": -150 },
+                "restore": {
+                  "expect": {
+                    "method":      { "label": "POST" },
+                    "bodyType":    { "label": "Raw" },
+                    "contentType": { "label": "JSON (application/json)" }
+                  }
+                },
+                "parameters": [
+                  { "name": "url",         "type": "url",    "label": "URL",    "required": true },
+                  { "name": "method",      "type": "select", "label": "Method" },
+                  { "name": "bodyType",    "type": "select", "label": "Body Type" },
+                  { "name": "contentType", "type": "select", "label": "Content Type" },
+                  { "name": "data",        "type": "text",   "label": "Request Content" }
+                ]
+              }
+            }
+          ],
+          "label": "Payment Succeeded",
+          "filter": {
+            "name":        "Is payment_intent.succeeded",
+            "conditions": [ { "a": "{{1.type}}", "b": "payment_intent.succeeded", "o": "text:equal" } ]
+          }
+        },
+        {
+          "flow": [
+            {
+              "id": 4,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": false, "useNewZLibDecompression": true },
+              "mapper": {
+                "url":         "{{ $env.N8N_STRIPE_WEBHOOK_URL }}",
+                "method":      "POST",
+                "headers":     [],
+                "qs":          [],
+                "bodyType":    "raw",
+                "parseResponse": true,
+                "contentType": "application/json",
+                "data":        "{\"eventType\":\"invoice.payment_failed\",\"invoiceId\":\"{{1.data.object.id}}\",\"customerEmail\":\"{{1.data.object.customer_email}}\",\"customerName\":\"{{1.data.object.customer_name}}\",\"amountDue\":\"{{1.data.object.amount_due}}\",\"invoiceUrl\":\"{{1.data.object.hosted_invoice_url}}\",\"daysOverdue\":\"{{1.data.object.metadata.daysOverdue}}\"}"
+              },
+              "metadata": {
+                "designer": { "x": 430, "y": 150 },
+                "restore": {
+                  "expect": {
+                    "method":      { "label": "POST" },
+                    "bodyType":    { "label": "Raw" },
+                    "contentType": { "label": "JSON (application/json)" }
+                  }
+                },
+                "parameters": [
+                  { "name": "url",         "type": "url",    "label": "URL",    "required": true },
+                  { "name": "method",      "type": "select", "label": "Method" },
+                  { "name": "bodyType",    "type": "select", "label": "Body Type" },
+                  { "name": "contentType", "type": "select", "label": "Content Type" },
+                  { "name": "data",        "type": "text",   "label": "Request Content" }
+                ]
+              }
+            }
+          ],
+          "label": "Payment Failed / Overdue",
+          "filter": {
+            "name":        "Is invoice.payment_failed",
+            "conditions": [ { "a": "{{1.type}}", "b": "invoice.payment_failed", "o": "text:equal" } ]
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips":             1,
+      "maxErrors":              3,
+      "autoCommit":             true,
+      "autoCommitTriggerLast":  true,
+      "sequential":             false,
+      "slots":                  null,
+      "confidential":           false,
+      "dataloss":               false,
+      "dlq":                    false,
+      "freshVariables":         false
+    },
+    "designer": {
+      "orphans": []
+    },
+    "zone": "eu1.make.com"
+  }
+}

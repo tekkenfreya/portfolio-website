@@ -1,0 +1,261 @@
+{
+  "name": "Invoice → Stripe Payment Tracking → Follow-up",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stripe-event",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "3a2b3c4d-0003-0003-0003-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "3a2b3c4d-0003-0003-0003-000000000099"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {}
+      },
+      "id": "3a2b3c4d-0003-0003-0003-000000000002",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [480, 160]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body ?? $input.first().json;\nreturn [{\n  json: {\n    eventType:      body.eventType      ?? '',\n    invoiceId:      body.invoiceId      ?? '',\n    customerEmail:  body.customerEmail  ?? '',\n    customerName:   body.customerName   ?? '',\n    amountDue:      body.amountDue      ?? 0,\n    amountPaid:     body.amountPaid     ?? 0,\n    daysOverdue:    body.daysOverdue    ?? 0,\n    invoiceUrl:     body.invoiceUrl     ?? ''\n  }\n}];"
+      },
+      "id": "3a2b3c4d-0003-0003-0003-000000000003",
+      "name": "Parse Stripe Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 320]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue":  "={{ $json.eventType }}",
+              "rightValue": "payment_intent.succeeded",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3a2b3c4d-0003-0003-0003-000000000004",
+      "name": "Payment Received?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [720, 320]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZAPIER_CONFIRM_EMAIL_WEBHOOK }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\":           \"{{ $json.customerEmail }}\",\n  \"name\":         \"{{ $json.customerName }}\",\n  \"invoiceId\":    \"{{ $json.invoiceId }}\",\n  \"amountPaid\":   {{ $json.amountPaid }},\n  \"invoiceUrl\":   \"{{ $json.invoiceUrl }}\"\n}",
+        "options": {}
+      },
+      "id": "3a2b3c4d-0003-0003-0003-000000000005",
+      "name": "Zapier: Send Confirmation Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 160]
+    },
+    {
+      "parameters": {
+        "jsCode": "const days = $input.first().json.daysOverdue;\nlet bucket = null;\nif (days >= 14)      bucket = 'day-14';\nelse if (days >= 7)  bucket = 'day-7';\nelse if (days >= 3)  bucket = 'day-3';\nreturn [{ json: { ...$input.first().json, reminderBucket: bucket } }];"
+      },
+      "id": "3a2b3c4d-0003-0003-0003-000000000006",
+      "name": "Calculate Overdue Bucket",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 460]
+    },
+    {
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue":  "={{ $json.reminderBucket }}",
+                    "rightValue": "day-3",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Day 3"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue":  "={{ $json.reminderBucket }}",
+                    "rightValue": "day-7",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Day 7"
+            },
+            {
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue":  "={{ $json.reminderBucket }}",
+                    "rightValue": "day-14",
+                    "operator": { "type": "string", "operation": "equals" }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Day 14"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3a2b3c4d-0003-0003-0003-000000000007",
+      "name": "Route by Overdue Days",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1200, 460]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZAPIER_REMINDER_EMAIL_WEBHOOK }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\":          \"{{ $json.customerEmail }}\",\n  \"name\":        \"{{ $json.customerName }}\",\n  \"invoiceId\":   \"{{ $json.invoiceId }}\",\n  \"amountDue\":   {{ $json.amountDue }},\n  \"invoiceUrl\":  \"{{ $json.invoiceUrl }}\",\n  \"reminderDay\": 3\n}",
+        "options": {}
+      },
+      "id": "3a2b3c4d-0003-0003-0003-000000000008",
+      "name": "Zapier: Day 3 Reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 340]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZAPIER_REMINDER_EMAIL_WEBHOOK }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\":          \"{{ $json.customerEmail }}\",\n  \"name\":        \"{{ $json.customerName }}\",\n  \"invoiceId\":   \"{{ $json.invoiceId }}\",\n  \"amountDue\":   {{ $json.amountDue }},\n  \"invoiceUrl\":  \"{{ $json.invoiceUrl }}\",\n  \"reminderDay\": 7\n}",
+        "options": {}
+      },
+      "id": "3a2b3c4d-0003-0003-0003-000000000009",
+      "name": "Zapier: Day 7 Reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 460]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.ZAPIER_REMINDER_EMAIL_WEBHOOK }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"to\":          \"{{ $json.customerEmail }}\",\n  \"name\":        \"{{ $json.customerName }}\",\n  \"invoiceId\":   \"{{ $json.invoiceId }}\",\n  \"amountDue\":   {{ $json.amountDue }},\n  \"invoiceUrl\":  \"{{ $json.invoiceUrl }}\",\n  \"reminderDay\": 14\n}",
+        "options": {}
+      },
+      "id": "3a2b3c4d-0003-0003-0003-000000000010",
+      "name": "Zapier: Day 14 Reminder",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 580]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          { "node": "Respond OK",          "type": "main", "index": 0 },
+          { "node": "Parse Stripe Event",  "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Parse Stripe Event": {
+      "main": [
+        [ { "node": "Payment Received?", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Payment Received?": {
+      "main": [
+        [ { "node": "Zapier: Send Confirmation Email", "type": "main", "index": 0 } ],
+        [ { "node": "Calculate Overdue Bucket",        "type": "main", "index": 0 } ]
+      ]
+    },
+    "Calculate Overdue Bucket": {
+      "main": [
+        [ { "node": "Route by Overdue Days", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Route by Overdue Days": {
+      "main": [
+        [ { "node": "Zapier: Day 3 Reminder",  "type": "main", "index": 0 } ],
+        [ { "node": "Zapier: Day 7 Reminder",  "type": "main", "index": 0 } ],
+        [ { "node": "Zapier: Day 14 Reminder", "type": "main", "index": 0 } ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3a2b3c4d-0003-0003-0003-000000000000",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "portfolio-demo"
+  },
+  "id": "invoice-followup-workflow-003",
+  "tags": []
+}
