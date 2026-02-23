@@ -24,7 +24,7 @@ Thumbs.db
 .claude/
 
 # Root-level public (working copies only — served from apps/web/public)
-public/
+/public/
 
 # Logs
 *.log
