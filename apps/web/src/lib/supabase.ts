@@ -1,9 +1,15 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY!;
+let _supabase: SupabaseClient | null = null;
 
-export const supabase = createClient(supabaseUrl, supabaseServiceKey);
+function getSupabase(): SupabaseClient | null {
+  if (_supabase) return _supabase;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY;
+  if (!url || !key) return null;
+  _supabase = createClient(url, key);
+  return _supabase;
+}
 
 export async function saveDemoResult(
   demoType: string,
@@ -11,6 +17,9 @@ export async function saveDemoResult(
   outputData: Record<string, unknown>,
   ipHash: string
 ) {
+  const supabase = getSupabase();
+  if (!supabase) return;
+
   const { error } = await supabase.from('demo_results').insert({
     demo_type: demoType,
     input_data: inputData,
@@ -31,6 +40,9 @@ export async function saveContact(
   aiAnalysis: Record<string, unknown>,
   aiResponse: string
 ) {
+  const supabase = getSupabase();
+  if (!supabase) return;
+
   const { error } = await supabase.from('contacts').insert({
     name,
     email,
@@ -46,6 +58,9 @@ export async function saveContact(
 }
 
 export async function trackDemoUsage(demoType: string) {
+  const supabase = getSupabase();
+  if (!supabase) return;
+
   const today = new Date().toISOString().split('T')[0];
 
   const { data } = await supabase
