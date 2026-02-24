@@ -29,6 +29,12 @@ const certificates = [
     href: 'https://www.udemy.com/certificate/UC-5fc8115c-2c30-4fd7-ab38-e5af89beb6f1/',
   },
   {
+    image: '/images/python-cert.jpg',
+    title: '100 Days of Code: The Complete Python Pro Bootcamp',
+    description: 'Certificate of Completion: 100 Days of Code — The Complete Python Pro Bootcamp by Angela Yu, completed on Udemy.',
+    href: 'https://udemy-certificate.s3.amazonaws.com/image/UC-65d3e8d1-368c-4f9f-84ba-36af2f5c7a2a.jpg',
+  },
+  {
     image: '/images/AppDevCert.jpg',
     title: 'App Development Course Certificate',
     description:
