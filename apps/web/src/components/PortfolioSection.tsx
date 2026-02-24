@@ -164,6 +164,13 @@ const pythonProjects: ProjectCard[] = [
     tags: ['Python', 'Tkinter', 'qrcode'],
     images: [{ platform: 'QR Generator', src: '/images/persona%20qr%20code%20generator.png' }],
   },
+  {
+    title: 'DeckBridge — Steam Deck File Transfer',
+    description:
+      'Beginner-friendly desktop app for Windows, Mac, and Linux that lets gamers transfer files between their PC and Steam Deck over SSH/SFTP with zero technical knowledge. Features auto device discovery via mDNS, a dual-pane file browser, drag-and-drop transfers with a progress queue, and Steam Deck quick-navigate shortcuts to common game paths.',
+    tags: ['Python', 'Tkinter', 'paramiko', 'SSH/SFTP', 'PyInstaller'],
+    images: [{ platform: 'DeckBridge', src: '/images/deckbridge.png' }],
+  },
 ];
 
 const gameDevVideos: VideoCard[] = [
