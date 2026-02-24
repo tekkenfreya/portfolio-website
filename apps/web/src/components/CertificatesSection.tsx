@@ -23,6 +23,12 @@ const certificates = [
   },
   // Full Stack
   {
+    image: '/images/nextjs-cert.jpg',
+    title: 'Next.js 15 & React - The Complete Guide',
+    description: 'Certificate of Completion: Next.js 15 & React - The Complete Guide, completed on Udemy.',
+    href: 'https://www.udemy.com/certificate/UC-5fc8115c-2c30-4fd7-ab38-e5af89beb6f1/',
+  },
+  {
     image: '/images/AppDevCert.jpg',
     title: 'App Development Course Certificate',
     description:
