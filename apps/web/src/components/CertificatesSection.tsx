@@ -2,6 +2,26 @@ import Image from 'next/image';
 import { FaArrowUpRightFromSquare } from 'react-icons/fa6';
 
 const certificates = [
+  // Automation
+  {
+    image: '/images/udemy-prompt-engineering.png',
+    title: 'Prompt Engineering Certificate',
+    description: 'Certificate of Completion: Prompt Engineering course, completed on Udemy.',
+    href: 'https://www.udemy.com/certificate/UC-2b15633c-a76e-41e8-b7dc-b0d7270e9afa/',
+  },
+  {
+    image: '/images/ai-coding-course.png',
+    title: 'AI Coding Course Certificate',
+    description: 'Certificate of Completion: AI Coding course, completed on Udemy.',
+    href: 'https://www.udemy.com/certificate/UC-294423a1-98da-46aa-a7ae-240404143a6a/',
+  },
+  {
+    image: '/images/comfyui-flux-cert.png',
+    title: 'ComfyUI & Flux Advanced Generative AI For Digital Artist',
+    description: 'Certificate of Completion: ComfyUI & Flux Advanced Generative AI for Digital Artists, completed on Udemy.',
+    href: 'https://www.udemy.com/certificate/UC-df67483f-aef8-4e5f-a4e0-5ee8b022e1a3/',
+  },
+  // Full Stack
   {
     image: '/images/AppDevCert.jpg',
     title: 'App Development Course Certificate',
@@ -9,6 +29,14 @@ const certificates = [
       'Certificate of Completion: App Development in Android 14 using Visual Studio, completed on Udemy.',
     href: 'https://drive.google.com/file/d/1fTZi3dePnLLdvu0lPRNVQqBy8K61uzLU/view?usp=sharing',
   },
+  {
+    image: '/images/WebDevCert.jpg',
+    title: 'Web Development Bootcamp Course',
+    description:
+      'Certificate of Completion: Web Development Bootcamp by Angela Yu, completed on Udemy.',
+    href: 'https://drive.google.com/file/d/1ZBEftR4gomJ5Fpyt2751oWUemWyxieUJ/view?usp=sharing',
+  },
+  // Game Dev
   {
     image: '/images/GameDevCert.png',
     title: 'EDX Game Development Certificate',
@@ -22,25 +50,6 @@ const certificates = [
     description:
       'Certificate of Recognition: Speaker at Game Development Seminar at Our Lady Fatima University.',
     href: 'https://drive.google.com/file/d/1wcpejHVvYy9ze4CN_kAgkpmGOtjQ2Sho/view?usp=sharing',
-  },
-  {
-    image: '/images/WebDevCert.jpg',
-    title: 'Web Development Bootcamp Course',
-    description:
-      'Certificate of Completion: Web Development Bootcamp by Angela Yu, completed on Udemy.',
-    href: 'https://drive.google.com/file/d/1ZBEftR4gomJ5Fpyt2751oWUemWyxieUJ/view?usp=sharing',
-  },
-  {
-    image: '/images/udemy-prompt-engineering.png',
-    title: 'Prompt Engineering Certificate',
-    description: 'Certificate of Completion: Prompt Engineering course, completed on Udemy.',
-    href: 'https://www.udemy.com/certificate/UC-2b15633c-a76e-41e8-b7dc-b0d7270e9afa/',
-  },
-  {
-    image: '/images/ai-coding-course.png',
-    title: 'AI Coding Course Certificate',
-    description: 'Certificate of Completion: AI Coding course, completed on Udemy.',
-    href: 'https://www.udemy.com/certificate/UC-294423a1-98da-46aa-a7ae-240404143a6a/',
   },
 ];
 
