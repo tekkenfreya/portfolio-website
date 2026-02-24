@@ -28,7 +28,7 @@ export default function HeroSection() {
           <div className="max-w-2xl text-center lg:text-left">
             {/* Status badge */}
             <div className="animate-fade-in-up mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-bg-card px-4 py-1.5">
-              <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-success animate-[pulse_2.5s_ease-in-out_infinite]" />
               <span className="text-sm text-text-secondary">Available for projects</span>
             </div>
 
@@ -59,21 +59,25 @@ export default function HeroSection() {
             {/* Social icons */}
             <div className="animate-fade-in-up animate-delay-400 mt-6 flex items-center gap-4 justify-center lg:justify-start">
               <a
-                href="#"
+                href="https://www.facebook.com/tekkenfreya"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Facebook"
                 className="rounded-lg border border-border p-2.5 text-text-secondary transition-colors hover:border-border-hover hover:text-text-primary"
               >
                 <FaFacebook className="h-5 w-5" />
               </a>
               <a
-                href="#"
+                href="https://www.linkedin.com/in/edson-pangilinan-38714226a"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="LinkedIn"
                 className="rounded-lg border border-border p-2.5 text-text-secondary transition-colors hover:border-border-hover hover:text-text-primary"
               >
                 <FaLinkedin className="h-5 w-5" />
               </a>
               <a
-                href="#"
+                href="mailto:tekkenfreya@gmail.com"
                 aria-label="Email"
                 className="rounded-lg border border-border p-2.5 text-text-secondary transition-colors hover:border-border-hover hover:text-text-primary"
               >
