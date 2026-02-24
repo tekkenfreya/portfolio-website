@@ -69,12 +69,6 @@ const fullStackProjects: ProjectCard[] = [
     externalLink: 'https://nextpick.vercel.app/',
     images: [{ platform: 'Nextpick', src: '/images/nextpick%20movie%20app.png' }],
   },
-  {
-    title: 'Vending Machine Controller',
-    description:
-      'Embedded system for automated water dispensing and remote telemetry using C++ and Arduino.',
-    tags: ['C++', 'Arduino', 'IoT'],
-  },
 ];
 
 
@@ -356,6 +350,7 @@ export default function PortfolioSection() {
                             <img
                               src={img.src}
                               alt={`${img.platform} screenshot`}
+                              loading="lazy"
                               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                             />
                           </div>
@@ -448,6 +443,7 @@ export default function PortfolioSection() {
                             <img
                               src={img.src}
                               alt={`${img.platform} workflow`}
+                              loading="lazy"
                               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                             />
                           </div>
