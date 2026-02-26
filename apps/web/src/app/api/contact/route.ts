@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateJsonWithClaude } from '@/lib/claude';
-import { saveContact } from '@/lib/supabase';
 import { getClientIp, checkRateLimit, rateLimitResponse } from '@/lib/rateLimit';
 import type { ContactFormInput, ContactFormOutput, ApiResponse } from '@gowater-portfolio/types';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-type ClaudeContactResult = Omit<ContactFormOutput, 'saved'>;
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
@@ -60,25 +57,14 @@ Return ONLY a valid JSON object with this exact structure — no explanation, no
   "personalizedResponse": "2-3 sentence warm professional response that directly addresses their specific needs and situation"
 }`;
 
-    const claudeResult = await generateJsonWithClaude<ClaudeContactResult>(prompt, {
+    const result = await generateJsonWithClaude<ContactFormOutput>(prompt, {
       maxTokens: 512,
       temperature: 0,
     });
 
-    void saveContact(
-      input.name,
-      input.email,
-      input.company ?? null,
-      input.message,
-      claudeResult.aiAnalysis as unknown as Record<string, unknown>,
-      claudeResult.personalizedResponse,
-    );
-
-    const output: ContactFormOutput = { ...claudeResult, saved: true };
-
     return NextResponse.json<ApiResponse<ContactFormOutput>>({
       success: true,
-      data: output,
+      data: result,
     });
   } catch (error) {
     console.error('[contact] error:', error);

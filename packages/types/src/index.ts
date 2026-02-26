@@ -43,21 +43,6 @@ export interface ActionItem {
   priority: 'high' | 'medium' | 'low';
 }
 
-export interface LeadQualifierMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
-export interface LeadQualificationReport {
-  score: number;
-  tier: 'hot' | 'warm' | 'cold';
-  companySize: string;
-  budget: string;
-  timeline: string;
-  needs: string[];
-  recommendation: string;
-}
-
 export interface ContactFormInput {
   name: string;
   email: string;
@@ -72,35 +57,6 @@ export interface ContactFormOutput {
     topics: string[];
   };
   personalizedResponse: string;
-  saved: boolean;
-}
-
-// Database types
-export interface DemoResult {
-  id: string;
-  demo_type: string;
-  input_data: Record<string, unknown>;
-  output_data: Record<string, unknown>;
-  ip_hash: string;
-  created_at: string;
-}
-
-export interface Contact {
-  id: string;
-  name: string;
-  email: string;
-  company: string | null;
-  message: string;
-  ai_analysis: Record<string, unknown>;
-  ai_response: string;
-  created_at: string;
-}
-
-export interface DemoAnalytics {
-  id: string;
-  demo_type: string;
-  usage_count: number;
-  date: string;
 }
 
 // API response wrapper
