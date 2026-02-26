@@ -38,7 +38,7 @@ export async function generateJsonWithClaude<T>(
 ): Promise<T> {
   const result = await generateWithClaude(prompt, {
     ...options,
-    temperature: options.temperature ?? 0.3,
+    temperature: options.temperature ?? 0,
   });
 
   // Extract JSON from the response (handle markdown code blocks)
