@@ -38,6 +38,7 @@ Before making any change, check in order:
 
 ### 5. Production-Grade Clean Code
 - No hacks, no shortcuts, no commented-out code, no dead code
+- No bloating — do not add dependencies, abstractions, or utilities unless directly required
 - No over-engineering — solve only what is asked, nothing more
 - No `any` types — use exact types from `@gowater-portfolio/types` or define a precise local interface
 - No console.log left in production code — only `console.error` in API routes for server-side error tracking
