@@ -97,7 +97,6 @@ llm-portfolio/
 - **Language:** TypeScript (strict)
 - **Styling:** Tailwind CSS v4
 - **AI:** Anthropic Claude Haiku (via `@anthropic-ai/sdk`)
-- **Database:** Supabase (PostgreSQL)
 - **Package Manager:** pnpm with workspaces
 
 ---
@@ -153,11 +152,7 @@ const result = await generateJsonWithClaude<OutputType>(prompt, {
   temperature: 0, // structured output — always 0
 });
 
-// 4. Persist — fire and forget, never block the response
-void saveDemoResult('demo-name', inputData, result as Record<string, unknown>, hashIp(ip));
-void trackDemoUsage('demo-name');
-
-// 5. Return success
+// 4. Return success
 return NextResponse.json<ApiResponse<OutputType>>({ success: true, data: result });
 
 // Wrap steps 2–5 in try/catch:
@@ -174,8 +169,7 @@ return NextResponse.json<ApiResponse<OutputType>>({ success: true, data: result 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';
 import { generateJsonWithClaude } from '@/lib/claude';
-import { saveDemoResult, trackDemoUsage } from '@/lib/supabase';
-import { getClientIp, checkRateLimit, rateLimitResponse, hashIp } from '@/lib/rateLimit';
+import { getClientIp, checkRateLimit, rateLimitResponse } from '@/lib/rateLimit';
 import type { ApiResponse } from '@gowater-portfolio/types';
 ```
 
@@ -287,8 +281,6 @@ docs(claude): finalize development rules
 ### Required (`apps/web/.env.local`)
 ```
 ANTHROPIC_API_KEY=
-NEXT_PUBLIC_SUPABASE_URL=
-SUPABASE_SERVICE_KEY=
 ```
 
 Never commit `.env.local`. It is listed in `.gitignore`.
