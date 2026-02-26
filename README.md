@@ -1,13 +1,14 @@
 # LLM Portfolio
 
-A portfolio website showcasing AI automation expertise with a live interactive demo — a smart contact form powered by Claude AI that analyzes intent and generates a personalized response in real time.
+A portfolio website showcasing AI automation expertise. The site includes a live AI-powered contact form that uses Claude Haiku to analyze each message, classify urgency and intent, and return a personalized response.
 
 ## Features
 
-- **AI-Powered Contact Form** — Claude Haiku analyzes the message, classifies urgency and intent, and returns a personalized reply
-- **Portfolio & Case Studies** — documented n8n + HubSpot automation projects
-- **Certificates Section** — Python, Next.js, ComfyUI, and automation course completions
-- **Rate Limiting** — per-IP request limiting with 24-hour windows, no database required
+- **AI Contact Form** — Claude Haiku analyzes the submission and returns intent classification, urgency level, and a personalized reply
+- **Portfolio & Case Studies** — n8n + HubSpot automation projects with documented outcomes
+- **Certificates** — Python, Next.js, ComfyUI, and automation course completions
+- **Skills & About** — technology stack, background, and education
+- **Rate Limiting** — per-IP in-memory limiting (5 requests / 24h on the contact route)
 
 ## Tech Stack
 
@@ -17,35 +18,45 @@ A portfolio website showcasing AI automation expertise with a live interactive d
 | Language | TypeScript (strict) |
 | Styling | Tailwind CSS v4 |
 | AI | Anthropic Claude Haiku (`@anthropic-ai/sdk`) |
-| Package Manager | pnpm (monorepo) |
+| Package manager | pnpm (monorepo) |
 
 ## Project Structure
 
 ```
 llm-portfolio/
 ├── apps/
-│   └── web/                  # Next.js 15 app
-│       ├── src/app/          # Pages and API routes
-│       ├── src/components/   # React components
-│       └── src/lib/          # Claude client, rate limiter
+│   └── web/
+│       ├── src/
+│       │   ├── app/
+│       │   │   ├── api/contact/    # Claude-powered contact form API
+│       │   │   ├── contact/        # Contact page
+│       │   │   └── page.tsx        # Home page
+│       │   ├── components/
+│       │   │   ├── demos/          # ContactForm component
+│       │   │   └── ui/             # Navbar, Footer
+│       │   └── lib/
+│       │       ├── claude.ts       # Anthropic SDK client
+│       │       └── rateLimit.ts    # In-memory rate limiter
 └── packages/
-    └── types/                # Shared TypeScript types
+    └── types/                      # Shared TypeScript types
 ```
 
 ## Getting Started
 
 ```bash
 pnpm install
-cp apps/web/.env.example apps/web/.env.local  # add ANTHROPIC_API_KEY
+```
+
+Create `apps/web/.env.local`:
+
+```
+ANTHROPIC_API_KEY=your_key_here
+```
+
+```bash
 pnpm dev
-```
-
-## Environment Variables
-
-```
-ANTHROPIC_API_KEY=
 ```
 
 ## Deployment
 
-Deployed as a Docker container on a Hetzner VPS via GitHub Actions CI/CD on push to `main`.
+Docker container on a Hetzner VPS. GitHub Actions deploys on push to `main`.
